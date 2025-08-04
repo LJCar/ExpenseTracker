@@ -10,7 +10,7 @@ from tkinter import filedialog
 import calendar
 import sqlite3
 
-conn = sqlite3.connect("ExpenseTracker.db")
+conn = sqlite3.connect("services/ExpenseTracker.db")
 c = conn.cursor()
 
 # Create default tables for expenses
@@ -60,7 +60,7 @@ conn.close()
 
 # Helper function get all the categories form database
 def get_categories():
-    conn = sqlite3.connect("ExpenseTracker.db")
+    conn = sqlite3.connect("services/ExpenseTracker.db")
     c = conn.cursor()
     c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
     categories = [row[0] for row in c.fetchall()]
@@ -99,7 +99,7 @@ def add_expense():
         category = category_combobox.get().strip()
         repeat_mapping = {"Yearly": 365, "Weekly": 7, "Daily": 1, '0': 0}
         repeat_custom_mapping = {"Years": 365, "Weeks": 7, "Days": 1, '0': 0}
-        conn = sqlite3.connect("ExpenseTracker.db")
+        conn = sqlite3.connect("services/ExpenseTracker.db")
         c = conn.cursor()
         try:
             amount = "{:.2f}".format(float(amount_entry.get()))
@@ -253,7 +253,7 @@ def delete_expense():
         try:
             category = category_combobox.get()
             category_table_name = f'"{category.lower()}"'
-            conn = sqlite3.connect("ExpenseTracker.db")
+            conn = sqlite3.connect("services/ExpenseTracker.db")
             c = conn.cursor()
             c.execute(f"DROP TABLE IF EXISTS {category_table_name}")
             conn.commit()
@@ -277,7 +277,7 @@ def delete_expense():
 
             category_table_name = f'"{category.lower()}"'
 
-            conn = sqlite3.connect("ExpenseTracker.db")
+            conn = sqlite3.connect("services/ExpenseTracker.db")
             c = conn.cursor()
 
             c.execute(f"DELETE FROM {category_table_name} WHERE purchase_date = ? AND description = ?",
@@ -318,7 +318,7 @@ def delete_expense():
         selected_category = category_combobox.get()
         selected_date = date_entry.get()
         category_table_name = f'"{selected_category.lower()}"'
-        conn = sqlite3.connect("ExpenseTracker.db")
+        conn = sqlite3.connect("services/ExpenseTracker.db")
         c = conn.cursor()
         c.execute(f"SELECT description, amount FROM {category_table_name} WHERE purchase_date = ?", (selected_date,))
         expenses = [f"{expense[0]} - ${expense[1]:.2f}" for expense in c.fetchall()]
@@ -376,7 +376,7 @@ def generate_weekly_report():
     def display_category_expenses(category, row):
         nonlocal total_expenses
         category_table_name = f'"{category.lower()}"'
-        conn = sqlite3.connect("ExpenseTracker.db")
+        conn = sqlite3.connect("services/ExpenseTracker.db")
         c = conn.cursor()
         c.execute(
             f"SELECT description, amount, id, purchase_date FROM {category_table_name} WHERE purchase_date BETWEEN ? AND ?",
@@ -461,7 +461,7 @@ def generate_monthly_report():
     def display_category_expenses(category, row):
         nonlocal total_expenses
         category_table_name = f'"{category.lower()}"'
-        conn = sqlite3.connect("ExpenseTracker.db")
+        conn = sqlite3.connect("services/ExpenseTracker.db")
         c = conn.cursor()
         c.execute(
             f"SELECT description, amount, id, purchase_date FROM {category_table_name} WHERE purchase_date BETWEEN ? AND ?",
@@ -513,7 +513,7 @@ def generate_monthly_report():
     annual_expense_totals = {category: 0 for category in categories}
     for category in categories:
         category_table_name = f'"{category.lower()}"'
-        conn = sqlite3.connect("ExpenseTracker.db")
+        conn = sqlite3.connect("services/ExpenseTracker.db")
         c = conn.cursor()
         c.execute(f"SELECT SUM(amount) FROM {category_table_name} WHERE purchase_date BETWEEN ? AND ?",
                   (year_start.strftime('%Y-%m-%d'), year_end.strftime('%Y-%m-%d')))
