@@ -1,12 +1,20 @@
 from abc import ABC, abstractmethod
 from typing import List
-from ..models.transaction import Transaction
+from models.transaction import Transaction
 from datetime import date
 
 class ITransaction(ABC):
 
     @abstractmethod
+    def delete_transaction(self, transaction: Transaction) -> bool:
+        pass
+
+    @abstractmethod
     def add_transaction(self, transaction: Transaction) -> bool:
+        pass
+
+    @abstractmethod
+    def update_transaction(self, transaction: Transaction) -> bool:
         pass
 
     @abstractmethod
@@ -18,7 +26,7 @@ class ITransaction(ABC):
         pass
 
     @abstractmethod
-    def get_transaction_by_description(self, description: str) -> List[Transaction] | None:
+    def get_transactions_by_description(self, description: str) -> List[Transaction] | None:
         pass
 
     @abstractmethod
@@ -34,13 +42,17 @@ class ITransaction(ABC):
         pass
 
     @abstractmethod
-    def get_transaction_by_week(self, input_date: date) -> List[Transaction] | None:
+    def get_transactions_by_week(self, input_date: date) -> List[Transaction] | None:
         pass
 
     @abstractmethod
-    def get_transaction_by_day(self, input_date: date) -> List[Transaction] | None:
+    def get_transactions_by_day(self, input_date: date) -> List[Transaction] | None:
         pass
 
     @abstractmethod
-    def delete_transaction(self, transaction: Transaction) -> bool:
+    def get_transactions_by_term(self, start_date: date, end_date: date) -> List[Transaction] | None:
         pass
+
+
+
+    

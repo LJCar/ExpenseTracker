@@ -2,7 +2,7 @@ import sqlite3
 
 DB_NAME = "ExpenseTracker.db"
 
-DEFAULT_CATEGORIES = ["food", "housing", "clothing", "entertainment", "utilities", "transportation"]
+DEFAULT_CATEGORIES = ["food", "housing", "entertainment", "utilities", "transportation", "restaurant"]
 
 def initialize_database():
     conn = sqlite3.connect(DB_NAME)
@@ -26,7 +26,7 @@ def initialize_database():
                     type TEXT CHECK(type IN ('DEBIT', 'CREDIT')) NOT NULL,
                     category_id INTEGER NOT NULL,
                     date DATE NOT NULL,
-                    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+                    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
                 )''')
 
     conn.commit()

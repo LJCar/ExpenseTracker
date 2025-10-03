@@ -7,6 +7,6 @@ class Transaction:
     id: int | None
     description: str
     amount: float
-    t_type: Literal["DEBIT", "CREDIT"]
+    type: Literal["DEBIT", "CREDIT"]
     category_id: int
     date: date

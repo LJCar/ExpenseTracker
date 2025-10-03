@@ -1,9 +1,9 @@
 import sqlite3
 from typing import List
 
-from ..models.category import Category
-from ..interfaces.icategory import ICategory
-from ..services.db import DB_NAME
+from models.category import Category
+from interfaces.icategory import ICategory
+from services.db import DB_NAME
 
 class CategoryRepository(ICategory):
 
