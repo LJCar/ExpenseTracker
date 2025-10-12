@@ -2,7 +2,7 @@ import sqlite3
 
 DB_NAME = "ExpenseTracker.db"
 
-DEFAULT_CATEGORIES = ["food", "housing", "entertainment", "utilities", "transportation", "restaurant"]
+DEFAULT_CATEGORIES = ["food", "housing", "entertainment", "utilities", "transportation", "restaurant", "income"]
 
 def initialize_database():
     conn = sqlite3.connect(DB_NAME)

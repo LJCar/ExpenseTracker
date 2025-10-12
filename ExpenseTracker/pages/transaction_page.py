@@ -3,6 +3,7 @@ import tkinter as tk
 from datetime import datetime, date
 from typing import cast, Literal
 from tkcalendar import DateEntry
+from collections import Counter
 from repositories.transaction_repository import TransactionRepository
 from repositories.category_repository import CategoryRepository
 from models.transaction import Transaction
@@ -35,7 +36,8 @@ def render_transaction_page(main_frame, go_back_callback):
 
     # -- Description --
     ttk.Label(main_frame, text="Description").grid(row=2, column=0, columnspan=2, sticky="w", padx=10)
-    desc_entry = ttk.Entry(main_frame, width=60)
+    desc_var = tk.StringVar()
+    desc_entry = ttk.Entry(main_frame, textvariable=desc_var, width=60)
     desc_entry.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
 
     # -- Left Column --
@@ -47,7 +49,8 @@ def render_transaction_page(main_frame, go_back_callback):
     amount_entry.pack(pady=5, fill="x")
 
     ttk.Label(left_column, text="Type").pack(anchor="w")
-    type_combobox = ttk.Combobox(left_column, values=["DEBIT", "CREDIT"], state="readonly")
+    type_var = tk.StringVar()
+    type_combobox = ttk.Combobox(left_column, textvariable=type_var, values=["DEBIT", "CREDIT"], state="readonly")
     type_combobox.pack(pady=5, fill="x")
 
     ttk.Label(left_column, text="Category").pack(anchor="w")
@@ -62,9 +65,35 @@ def render_transaction_page(main_frame, go_back_callback):
     right_column.grid(row=4, column=1, padx=10, pady=5, sticky="nsew")
 
     ttk.Label(right_column, text="Date").pack(anchor="w")
-    date_entry = DateEntry(right_column, date_pattern='yyyy-mm-dd')
+    date_entry = DateEntry(right_column, date_pattern='yyyy-mm-dd', state="readonly")
     date_entry.set_date(date.today())
     date_entry.pack(pady=5, fill="x")
+
+    # -- Auto-detect category logic --
+    def detect_category_from_description(*args):
+        desc = desc_var.get().strip()
+        selected_type = type_var.get()
+        if len(desc) < 3 or selected_type not in {"DEBIT", "CREDIT"}:
+            return
+
+        matches = repo.get_transactions_by_description(desc)
+        if not matches:
+            return
+
+        # Filter matches by the selected transaction type
+        matches = [t for t in matches if t.type == selected_type]
+        if not matches:
+            return
+
+        # Find most common category among filtered matches
+        cat_counts = Counter(t.category_id for t in matches)
+        most_common_id = cat_counts.most_common(1)[0][0]
+        matched_name = next((name for name, cid in category_ids.items() if cid == most_common_id), None)
+        if matched_name:
+            category_combobox.set(matched_name)
+
+    desc_var.trace_add("write", detect_category_from_description)
+    type_var.trace_add("write", detect_category_from_description)
 
     # -- Submit logic  --
     def submit_transaction():

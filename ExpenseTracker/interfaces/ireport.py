@@ -6,7 +6,7 @@ from models.report import Report
 class IReport(ABC):
 
     @abstractmethod
-    def get_report_by_month(self, year: int, month: int) -> Report | None:
+    def get_report_by_month(self, year: int, month: int, budget_cap: float) -> Report | None:
         pass
 
     @abstractmethod

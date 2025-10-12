@@ -46,7 +46,7 @@ def render_manage_transaction_page(main_frame, go_back_callback):
     year_cb = ttk.Combobox(top_bar, textvariable=year_var, values=[str(y) for y in range(current_year-5, current_year+1)], width=6)
     year_cb.pack(side="left")
 
-    ttk.Button(top_bar, text="Refresh", command=lambda: filter_transactions()).pack(side="left", padx=10)
+    ttk.Button(top_bar, text="Refresh", command=lambda: filter_transactions(clear_search=True)).pack(side="left", padx=10)
 
     # === Treeview ===
     columns = ("date", "description", "category", "type", "amount")
@@ -90,8 +90,11 @@ def render_manage_transaction_page(main_frame, go_back_callback):
                 f"{t.amount:.2f}"
             ))
 
-    def filter_transactions():
+    def filter_transactions(clear_search=False):
         try:
+            if clear_search:
+                search_var.set("")
+
             month = list(calendar.month_name).index(month_var.get())
             year = int(year_var.get())
             desc = search_var.get().strip()

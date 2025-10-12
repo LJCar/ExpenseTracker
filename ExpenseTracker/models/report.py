@@ -4,9 +4,14 @@ from typing import Dict
 @dataclass
 class Report:
     total: float
-    average: float
     category_totals: Dict[str, float]
     category_percentages: Dict[str, float]
+
+    total_monthly_income: float
+    income_usage_percent: float
+    income_sources: Dict[str, float]
+    income_source_percentages: Dict[str, float]
+    income_saved: float
 
     transaction_count: int
     days_covered: int

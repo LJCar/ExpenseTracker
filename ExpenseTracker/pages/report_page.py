@@ -47,12 +47,8 @@ def render_report_page(main_frame, go_back_callback):
 
             repo = ReportRepository()
 
-            # Use the same logic you already wrote, passing the budget as needed
-            report = repo.get_report_by_term(
-                start_date=date(year, month, 1),
-                end_date=date(year, month, calendar.monthrange(year, month)[1]),
-                budget_cap=budget
-            )
+            report = repo.get_report_by_month(year, month, budget)
+
             if not report:
                 return messagebox.showinfo("No Data", "No transactions found for the selected month.")
 
@@ -74,33 +70,102 @@ def render_report_page(main_frame, go_back_callback):
 
         ttk.Label(report_frame, text=f"📅 Report for {month_var.get()} {year_var.get()}", font=("Arial", 14, "bold")).pack(pady=(0, 10))
 
+        # --- Income Section (Only if income exists) ---
+        if report.total_monthly_income > 0:
+            # --- Income Summary Section ---
+            ttk.Label(report_frame, text="Income Summary", font=("Arial", 12, "bold")).pack(anchor="w", pady=(15, 5))
+
+            income_summary_frame = ttk.Frame(report_frame)
+            income_summary_frame.pack(fill="x", pady=(5, 5))
+
+            # Left: Income Breakdown Table
+            left_income_frame = ttk.Frame(income_summary_frame)
+            left_income_frame.pack(side="left", anchor="n", padx=(0, 40))
+
+            if len(report.income_sources) > 1:
+                ttk.Label(left_income_frame, text="Source", width=20).grid(row=0, column=0, sticky="w")
+                ttk.Label(left_income_frame, text="Amount ($)", width=12).grid(row=0, column=1, sticky="w")
+                ttk.Label(left_income_frame, text="% of Income", width=12).grid(row=0, column=2, sticky="w")
+
+                for i, (desc, amt) in enumerate(report.income_sources.items(), start=1):
+                    ttk.Label(left_income_frame, text=desc).grid(row=i, column=0, sticky="w")
+                    ttk.Label(left_income_frame, text=f"${amt:.2f}").grid(row=i, column=1, sticky="w")
+                    ttk.Label(left_income_frame, text=f"{report.income_source_percentages[desc]:.2f}%").grid(row=i,
+                                                                                                             column=2,
+                                                                                                             sticky="w")
+            else:
+                single_desc = next(iter(report.income_sources))
+                amt = report.income_sources[single_desc]
+                ttk.Label(left_income_frame, text="Income Source", font=("Arial", 11, "bold")).pack(anchor="w",
+                                                                                                    pady=(5, 2))
+                ttk.Label(left_income_frame, text=f"{single_desc}: ${amt:.2f}").pack(anchor="w")
+
+            # Right: Summary Info
+            right_income_frame = ttk.Frame(income_summary_frame)
+            right_income_frame.pack(side="left", anchor="n")
+
+            income_info = [
+                f"Total Income: ${report.total_monthly_income:.2f}",
+                f"Income Used: {report.income_usage_percent:.2f}%",
+                f"Income Saved: ${report.income_saved:.2f}"
+            ]
+            for line in income_info:
+                ttk.Label(right_income_frame, text=line).pack(anchor="w")
+
+            # --- Horizontal Separator ---
+            ttk.Separator(report_frame, orient="horizontal").pack(fill="x", pady=15)
+
+
+        # Determine if month is ongoing
+        today = date.today()
+        selected_year = int(year_var.get())
+        selected_month = list(calendar.month_name).index(month_var.get())
+        is_current_month = (selected_year == today.year and selected_month == today.month)
+
         info = [
             f"Total Spent: ${report.total:.2f}",
-            f"Average per Transaction: ${report.average:.2f}",
             f"Transactions: {report.transaction_count}",
-            f"Days Covered: {report.days_covered}",
             f"Avg/Day: ${report.avg_per_day:.2f}",
-            f"Projected Total: ${report.projected_total:.2f}",
-            f"Budget Cap: ${report.budget_cap:.2f}",
+        ]
+
+        # Only include these if the month isn't finished yet
+        if is_current_month:
+            info.extend([
+                f"Days Covered: {report.days_covered}",
+                f"Projected Total: ${report.projected_total:.2f}",
+            ])
+
+        info.extend([
             f"Remaining Budget: ${report.remaining_budget:.2f}",
             f"Budget Used: {report.budget_used_percent:.2f}%",
             f"On Track: {'✅ Yes' if report.is_on_track else '❌ No'}"
-        ]
+        ])
+
+        spending_and_categories = ttk.Frame(report_frame)
+        spending_and_categories.pack(fill="x", pady=(15, 5))
+
+        # --- Left: Spending Summary ---
+        spending_frame = ttk.Frame(spending_and_categories)
+        spending_frame.pack(side="left", anchor="n", padx=(0, 40))
 
         for line in info:
-            ttk.Label(report_frame, text=line).pack(anchor="w")
+            ttk.Label(spending_frame, text=line).pack(anchor="w")
 
-        # --- Category Breakdown ---
-        ttk.Label(report_frame, text="Category Breakdown", font=("Arial", 12, "bold")).pack(pady=(15, 5))
+        # --- Right: Category Breakdown ---
+        category_frame = ttk.Frame(spending_and_categories)
+        category_frame.pack(side="left", anchor="n")
 
-        breakdown_frame = ttk.Frame(report_frame)
-        breakdown_frame.pack(fill="x")
+        ttk.Label(category_frame, text="Category Breakdown", font=("Arial", 12, "bold")).pack(anchor="w", pady=(0, 5))
 
-        ttk.Label(breakdown_frame, text="Category", width=20).grid(row=0, column=0, sticky="w")
-        ttk.Label(breakdown_frame, text="Total ($)", width=12).grid(row=0, column=1, sticky="w")
-        ttk.Label(breakdown_frame, text="% of Total", width=12).grid(row=0, column=2, sticky="w")
+        breakdown_table = ttk.Frame(category_frame)
+        breakdown_table.pack()
+
+        ttk.Label(breakdown_table, text="Category", width=20).grid(row=0, column=0, sticky="w")
+        ttk.Label(breakdown_table, text="Total ($)", width=12).grid(row=0, column=1, sticky="w")
+        ttk.Label(breakdown_table, text="% of Total", width=12).grid(row=0, column=2, sticky="w")
 
         for i, (cat, amt) in enumerate(report.category_totals.items(), start=1):
-            ttk.Label(breakdown_frame, text=cat).grid(row=i, column=0, sticky="w")
-            ttk.Label(breakdown_frame, text=f"${amt:.2f}").grid(row=i, column=1, sticky="w")
-            ttk.Label(breakdown_frame, text=f"{report.category_percentages[cat]:.2f}%").grid(row=i, column=2, sticky="w")
+            ttk.Label(breakdown_table, text=cat).grid(row=i, column=0, sticky="w")
+            ttk.Label(breakdown_table, text=f"${amt:.2f}").grid(row=i, column=1, sticky="w")
+            ttk.Label(breakdown_table, text=f"{report.category_percentages[cat]:.2f}%").grid(row=i, column=2,
+                                                                                             sticky="w")
