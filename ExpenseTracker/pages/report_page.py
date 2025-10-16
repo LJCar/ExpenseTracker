@@ -2,7 +2,9 @@ from tkinter import ttk, messagebox
 import tkinter as tk
 from datetime import date
 import calendar
+from calendar import monthrange
 from repositories.report_repository import ReportRepository
+from repositories.saved_report_repository import SavedReportRepository
 
 def render_report_page(main_frame, go_back_callback):
     for widget in main_frame.winfo_children():
@@ -38,9 +40,27 @@ def render_report_page(main_frame, go_back_callback):
     ttk.Label(input_frame, text="Budget Cap ($):").grid(row=1, column=0, sticky="e", padx=5, pady=5)
     ttk.Entry(input_frame, textvariable=budget_var).grid(row=1, column=1)
 
+    # -- Auto-detect a Saved Report --
+    def detect_saved_report(*args):
+        selected_month = list(calendar.month_name).index(month_var.get())
+        selected_year = int(year_var.get())
+        repo = SavedReportRepository()
+        saved_budget = repo.get_saved_report_budget(selected_month, selected_year)
+        if saved_budget:
+            budget_var.set(f"{float(saved_budget):.2f}")
+            fetch_report()
+        else:
+            fetch_report()
+
+    month_var.trace_add("write", detect_saved_report)
+    year_var.trace_add("write", detect_saved_report)
+
     # Fetch Button
     def fetch_report():
         try:
+            if budget_var.get() == "":
+                reset_report_display()
+                return messagebox.showinfo("No Budget", "Add a Budget Cap for the month.")
             month = list(calendar.month_name).index(month_var.get())
             year = int(year_var.get())
             budget = float(budget_var.get())
@@ -50,9 +70,11 @@ def render_report_page(main_frame, go_back_callback):
             report = repo.get_report_by_month(year, month, budget)
 
             if not report:
-                return messagebox.showinfo("No Data", "No transactions found for the selected month.")
+                reset_report_display()
+                return messagebox.showinfo("No Data", "No transactions found for the selected period.")
 
             display_report(report)
+
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
@@ -61,6 +83,14 @@ def render_report_page(main_frame, go_back_callback):
     # Placeholder for report content
     report_frame = ttk.Frame(main_frame)
     report_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+    save_button_frame = ttk.Frame(main_frame)
+    save_button_frame.pack(fill="x", padx=10, pady=10)
+
+    # Save Report Button
+    save_button = ttk.Button(save_button_frame, text="💾 Save Report")
+    save_button.pack(side="right")
+    save_button.pack_forget()
 
     def display_report(report):
         for widget in report_frame.winfo_children():
@@ -122,6 +152,12 @@ def render_report_page(main_frame, go_back_callback):
         selected_month = list(calendar.month_name).index(month_var.get())
         is_current_month = (selected_year == today.year and selected_month == today.month)
 
+        # Determine if month is over
+        last_day = monthrange(selected_year, selected_month)[1]
+        month_is_done = (selected_year < today.year) or \
+                        (selected_year == today.year and selected_month < today.month) or \
+                        (selected_year == today.year and selected_month == today.month and today.day == last_day)
+
         info = [
             f"Total Spent: ${report.total:.2f}",
             f"Transactions: {report.transaction_count}",
@@ -169,3 +205,53 @@ def render_report_page(main_frame, go_back_callback):
             ttk.Label(breakdown_table, text=f"${amt:.2f}").grid(row=i, column=1, sticky="w")
             ttk.Label(breakdown_table, text=f"{report.category_percentages[cat]:.2f}%").grid(row=i, column=2,
                                                                                              sticky="w")
+        if month_is_done:
+            repo = SavedReportRepository()
+            selected_month = list(calendar.month_name).index(month_var.get())
+            selected_year = int(year_var.get())
+            saved_budget = repo.get_saved_report_budget(selected_month, selected_year)
+
+            # Only show save button if there's no saved report OR if the budget differs
+            if saved_budget is None or float(f"{saved_budget:.2f}") != float(f"{report.budget_cap:.2f}"):
+                save_button.configure(command=lambda: save_report_to_db(report))
+                save_button.pack(side="right")
+            else:
+                save_button.pack_forget()
+        else:
+            save_button.pack_forget()
+
+    def save_report_to_db(report):
+        repo = SavedReportRepository()
+        selected_month = list(calendar.month_name).index(month_var.get())
+        selected_year = int(year_var.get())
+        existing = repo.find_report(selected_month, selected_year)
+        confirm = True
+
+        if existing:
+            confirm = messagebox.askyesno("Overwrite?", "A report for this month already exists. Overwrite it?")
+
+        if confirm:
+            try:
+                repo.save_report(report, selected_month, selected_year)
+                messagebox.showinfo("Success", f"Report for {month_var.get()} {year_var.get()} saved.")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
+    def reset_report_display():
+        for widget in report_frame.winfo_children():
+            widget.destroy()
+        ttk.Label(report_frame, text="📭 No report loaded.", font=("Arial", 12, "italic")).pack(pady=10)
+        save_button.pack_forget()
+
+    repo = SavedReportRepository()
+    reports = repo.get_all_saved_reports()
+    recent_reports = sorted(
+        [r for r in reports if r.budget_cap is not None],
+        key=lambda r: (r.year, r.month),
+        reverse=True
+    )[:5]
+
+    if recent_reports:
+        estimated_budget = min(r.budget_cap for r in recent_reports)
+        budget_var.set(f"{estimated_budget:.2f}")
+        fetch_report()
