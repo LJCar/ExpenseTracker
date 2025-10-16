@@ -5,6 +5,7 @@ import calendar
 from calendar import monthrange
 from repositories.report_repository import ReportRepository
 from repositories.saved_report_repository import SavedReportRepository
+from pages.spending_chart_page import render_spending_chart_page
 
 def render_report_page(main_frame, go_back_callback):
     for widget in main_frame.winfo_children():
@@ -16,6 +17,13 @@ def render_report_page(main_frame, go_back_callback):
 
     ttk.Button(top_frame, text="⬅️ Back", command=lambda: go_back_callback(main_frame)).pack(side="left")
     ttk.Label(top_frame, text="📊 Monthly Report", font=("Arial", 16)).pack(side="left", padx=10)
+
+    repo = SavedReportRepository()
+    reports = repo.get_all_saved_reports()
+    if reports:
+        ttk.Button(top_frame, text="📉 View Spending Chart",
+                command=lambda: render_spending_chart_page(reports)).pack(side="right")
+
 
     # --- Input Fields Frame ---
     input_frame = ttk.Frame(main_frame)
@@ -245,13 +253,13 @@ def render_report_page(main_frame, go_back_callback):
 
     repo = SavedReportRepository()
     reports = repo.get_all_saved_reports()
-    recent_reports = sorted(
-        [r for r in reports if r.budget_cap is not None],
-        key=lambda r: (r.year, r.month),
-        reverse=True
-    )[:5]
-
-    if recent_reports:
-        estimated_budget = min(r.budget_cap for r in recent_reports)
-        budget_var.set(f"{estimated_budget:.2f}")
-        fetch_report()
+    if reports:
+        recent_reports = sorted(
+            [r for r in reports if r.budget_cap is not None],
+            key=lambda r: (r.year, r.month),
+            reverse=True
+        )[:5]
+        if recent_reports:
+            estimated_budget = min(r.budget_cap for r in recent_reports)
+            budget_var.set(f"{estimated_budget:.2f}")
+            fetch_report()

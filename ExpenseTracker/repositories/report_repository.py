@@ -23,10 +23,10 @@ class ReportRepository(IReport):
                          FROM transactions 
                          WHERE type = 'CREDIT' AND date BETWEEN ? AND ?""",
                       (start_date.isoformat(), end_date.isoformat()))
-            total_income = c.fetchone()[0] or 0.0
+            total_income = round(c.fetchone()[0] or 0.0, 2)
 
             income_usage_percent = round((total / total_income * 100), 2) if total_income > 0 else 0.0
-            income_saved = total_income - total if total_income > 0 else 0.0
+            income_saved = round(total_income - total if total_income > 0 else 0.0, 2)
 
             c.execute("""
                 SELECT LOWER(TRIM(description)) AS normalized_desc, SUM(amount)
