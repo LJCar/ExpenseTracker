@@ -33,7 +33,7 @@ def render_category_page(main_frame, go_back_callback):
     def refresh_categories():
         category_listbox.delete(0, tk.END)
         for c in repo.get_all_categories():
-            category_listbox.insert(tk.END, c.name)
+            category_listbox.insert(tk.END, c.name.capitalize())
 
     refresh_categories()
 

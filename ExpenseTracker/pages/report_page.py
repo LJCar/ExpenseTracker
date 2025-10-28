@@ -5,7 +5,8 @@ import calendar
 from calendar import monthrange
 from repositories.report_repository import ReportRepository
 from repositories.saved_report_repository import SavedReportRepository
-from pages.spending_chart_page import render_spending_chart_page
+from pages.savings_chart_page import render_savings_chart_page
+from services.export_report import export_monthly_report_to_excel
 
 def render_report_page(main_frame, go_back_callback):
     for widget in main_frame.winfo_children():
@@ -21,8 +22,8 @@ def render_report_page(main_frame, go_back_callback):
     repo = SavedReportRepository()
     reports = repo.get_all_saved_reports()
     if reports:
-        ttk.Button(top_frame, text="📉 View Spending Chart",
-                command=lambda: render_spending_chart_page(reports)).pack(side="right")
+        ttk.Button(top_frame, text="📉 View Savings Chart",
+                   command=lambda: render_savings_chart_page(reports)).pack(side="right")
 
 
     # --- Input Fields Frame ---
@@ -95,10 +96,14 @@ def render_report_page(main_frame, go_back_callback):
     save_button_frame = ttk.Frame(main_frame)
     save_button_frame.pack(fill="x", padx=10, pady=10)
 
-    # Save Report Button
+    # Save Report & Export Report Button
     save_button = ttk.Button(save_button_frame, text="💾 Save Report")
     save_button.pack(side="right")
     save_button.pack_forget()
+
+    export_button = ttk.Button(save_button_frame, text="📤 Export to Excel")
+    export_button.pack(side="left")
+    export_button.pack_forget()
 
     def display_report(report):
         for widget in report_frame.winfo_children():
@@ -209,7 +214,7 @@ def render_report_page(main_frame, go_back_callback):
         ttk.Label(breakdown_table, text="% of Total", width=12).grid(row=0, column=2, sticky="w")
 
         for i, (cat, amt) in enumerate(report.category_totals.items(), start=1):
-            ttk.Label(breakdown_table, text=cat).grid(row=i, column=0, sticky="w")
+            ttk.Label(breakdown_table, text=cat.capitalize()).grid(row=i, column=0, sticky="w")
             ttk.Label(breakdown_table, text=f"${amt:.2f}").grid(row=i, column=1, sticky="w")
             ttk.Label(breakdown_table, text=f"{report.category_percentages[cat]:.2f}%").grid(row=i, column=2,
                                                                                              sticky="w")
@@ -227,6 +232,21 @@ def render_report_page(main_frame, go_back_callback):
                 save_button.pack_forget()
         else:
             save_button.pack_forget()
+
+        if report.transactions:
+
+            def do_export():
+                from tkinter import filedialog
+                filename = f"Monthly_Report_{month_var.get()}_{year_var.get()}.xlsx"
+                file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", initialfile=filename)
+                if file_path:
+                    export_monthly_report_to_excel(report, file_path, month_var.get(), year_var.get())
+                    messagebox.showinfo("Success", f"Report exported to:\n{file_path}")
+
+            export_button.configure(command=do_export)
+            export_button.pack(side="left")
+        else:
+            export_button.pack_forget()
 
     def save_report_to_db(report):
         repo = SavedReportRepository()

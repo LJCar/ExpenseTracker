@@ -29,6 +29,25 @@ class ReportRepository(IReport):
             income_saved = round(total_income - total if total_income > 0 else 0.0, 2)
 
             c.execute("""
+                SELECT t.date, t.description, t.amount, t.type, c.name
+                FROM transactions t
+                LEFT JOIN categories c ON t.category_id = c.id
+                WHERE t.date BETWEEN ? AND ?
+                ORDER BY t.date
+            """, (start_date.isoformat(), end_date.isoformat()))
+
+            transactions = [
+                {
+                    "date": row[0],
+                    "description": row[1],
+                    "amount": row[2],
+                    "type": row[3],
+                    "category": row[4] or "Uncategorized"
+                }
+                for row in c.fetchall()
+            ]
+
+            c.execute("""
                 SELECT LOWER(TRIM(description)) AS normalized_desc, SUM(amount)
                 FROM transactions
                 WHERE type = 'CREDIT' AND date BETWEEN ? AND ?
@@ -87,6 +106,7 @@ class ReportRepository(IReport):
                 income_saved=income_saved,
                 income_sources=income_sources,
                 income_source_percentages=income_source_percentages,
+                transactions=transactions,
                 transaction_count=tx_count,
                 days_covered=days_covered,
                 avg_per_day=round(avg_per_day, 2),

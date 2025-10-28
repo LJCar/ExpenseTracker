@@ -85,7 +85,7 @@ def render_manage_transaction_page(main_frame, go_back_callback):
             tree.insert("", "end", iid=str(t.id), values=(
                 t.date,
                 t.description,
-                category.name if category else "Unknown",
+                category.name.capitalize() if category else "Unknown",
                 t.type,
                 f"{t.amount:.2f}"
             ))
@@ -151,7 +151,7 @@ def render_manage_transaction_page(main_frame, go_back_callback):
 
         ttk.Label(popup, text="Category").pack()
         categories = cat_repo.get_all_categories()
-        category_names = [c.name for c in categories]
+        category_names = [c.name.capitalize() for c in categories]
         category_ids = {c.name: c.id for c in categories}
         cat_cb = ttk.Combobox(popup, values=category_names, state="readonly")
         cat_cb.set(category)

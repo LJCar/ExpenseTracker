@@ -55,7 +55,7 @@ def render_transaction_page(main_frame, go_back_callback):
 
     ttk.Label(left_column, text="Category").pack(anchor="w")
     categories = cat_repo.get_all_categories()
-    category_names = [c.name for c in categories]
+    category_names = [c.name.capitalize() for c in categories]
     category_ids = {c.name: c.id for c in categories}
     category_combobox = ttk.Combobox(left_column, values=category_names, state="readonly")
     category_combobox.pack(pady=5, fill="x")
@@ -103,7 +103,7 @@ def render_transaction_page(main_frame, go_back_callback):
                 description=desc_entry.get(),
                 amount=float(amount_entry.get()),
                 type=cast(Literal["DEBIT", "CREDIT"], type_combobox.get()),
-                category_id=category_ids[category_combobox.get()],
+                category_id=category_ids[category_combobox.get().lower()],
                 date=datetime.strptime(date_entry.get(), '%Y-%m-%d').date()
             )
             if repo.add_transaction(transaction):

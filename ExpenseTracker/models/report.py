@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict
 
 @dataclass
@@ -22,6 +22,7 @@ class Report:
     budget_cap: float = 0.0
     remaining_budget: float = 0.0
     is_on_track: bool = True
+    transactions: list[dict] = field(default_factory=list)
 
 
 
