@@ -21,35 +21,35 @@ It provides an intuitive interface for managing transactions, generating reports
 ## 📸 Screenshots
 
 ### 🏠 Home Screen
-![Home Screen](screenshots/home.png)
+![Home Screen](ExpenseTracker/screenshots/home.png)
 
 ### ➕ Add Transaction
-![Add Transaction](screenshots/transaction.png)
+![Add Transaction](ExpenseTracker/screenshots/transaction.png)
 
 ### 📋 Manage Transactions
-![Manage Transactions](screenshots/manage.png)
+![Manage Transactions](ExpenseTracker/screenshots/manage.png)
 
 ### 🔍 Search Transactions
-![Search Transactions](screenshots/search.png)
+![Search Transactions](ExpenseTracker/screenshots/search.png)
 
 ### 📂 Manage Categories
-![Manage Categories](screenshots/categories.png)
+![Manage Categories](ExpenseTracker/screenshots/categories.png)
 
 ### 📊 Monthly Report
-![Monthly Report](screenshots/report.png)
+![Monthly Report](ExpenseTracker/screenshots/report.png)
 
 ### 📈 Daily Spending Chart
-![Daily Spending Chart](screenshots/spending_focus.png)
-![Daily Spending Chart](screenshots/spending_detail.png)
+![Daily Spending Chart](ExpenseTracker/screenshots/spending_focus.png)
+![Daily Spending Chart](ExpenseTracker/screenshots/spending_detail.png)
 
 ### 💾 Excel Export — Summary Sheet
-![Excel Summary](screenshots/excel_report.png)
+![Excel Summary](ExpenseTracker/screenshots/excel_report.png)
 
 ### 💾 Excel Export — Transactions Sheet
-![Excel Transactions](screenshots/excel_transactions.png)
+![Excel Transactions](ExpenseTracker/screenshots/excel_transactions.png)
 
 ### 💹 Year-to-Date (YTD) Savings Chart
-![Savings Chart](screenshots/savings.png)
+![Savings Chart](ExpenseTracker/screenshots/savings.png)
 
 ---
 
